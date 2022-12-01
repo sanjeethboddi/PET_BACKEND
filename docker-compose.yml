@@ -1,0 +1,222 @@
+version: '3.1'
+services:
+    auth_service:
+        build:
+            context: ../auth_service
+            dockerfile: Dockerfile
+        container_name: auth_service
+        restart: unless-stopped
+        ports:
+            - "8080:80"
+            - "8081:443"
+        depends_on:
+            - auth_mongodb
+        links:
+            - "auth_mongodb"
+        networks:
+            - auth_service_db_nw
+            - gateway_services_nw
+
+    profile_service:
+        build:
+            context: ../profile_service
+            dockerfile: Dockerfile
+        container_name: profile_service
+        restart: unless-stopped
+        ports:
+            - "8082:80"
+            - "8083:443"
+        depends_on:
+            - profile_mongodb
+            - auth_service
+            - graph_service
+        links:
+            - "profile_mongodb"
+            - "auth_service"
+            - "graph_service"
+        networks:
+            - profile_service_db_nw
+            - gateway_services_nw
+        
+    
+    graph_service:
+        build:
+            context: ../graph_service
+            dockerfile: Dockerfile
+        container_name: graph_service
+        restart: unless-stopped
+        ports:
+            - "8084:80"
+            - "8085:443"
+        expose:
+          - "80"
+        depends_on:
+            - "graph_neo4j"
+            - "auth_service"
+        links:
+            - "graph_neo4j"
+            - "auth_service"
+        networks:
+            - graph_service_db_nw
+            - gateway_services_nw
+
+    
+    post_service:
+        build:
+            context: ../post_service
+            dockerfile: Dockerfile
+        container_name: post_service
+        restart: unless-stopped
+        volumes:
+            - "/tmp/images/:/app/images/"
+        ports:
+            - "8086:80"
+            - "8087:443"
+        expose:
+            - "80"
+        depends_on:
+            - post_mongodb
+            - auth_service
+            - feed_service
+            
+        links:
+            - "post_mongodb"
+            - "auth_service"
+            - "feed_service"
+        networks:
+            - post_service_db_nw
+            - gateway_services_nw
+    
+    feed_service:
+        build:
+            context: ../feed_service
+            dockerfile: Dockerfile
+        container_name: feed_service
+        restart: unless-stopped
+        ports:
+            - "8088:80"
+            - "8089:443"
+        expose:
+            - "80"
+        depends_on:
+            - feed_mongodb
+            - auth_service
+            - graph_service
+
+        links:
+            - "feed_mongodb"
+            - "auth_service"
+            - "graph_service"
+        networks:
+            - feed_service_db_nw
+            - gateway_services_nw
+    
+    gateway_service:
+        build:
+            context: ../gateway_service
+            dockerfile: Dockerfile
+        container_name: gateway_service
+        restart: unless-stopped
+        ports:
+            - "443:443"
+        networks:
+            - gateway_services_nw
+        
+        links:
+            - "auth_service"
+            - "profile_service"
+            - "graph_service"
+            - "post_service"
+            - "feed_service"
+     
+
+    
+    
+    auth_mongodb:
+        image: mongo:4.0.3
+        container_name: auth_mongodb
+        restart: unless-stopped
+        volumes:
+            - "/tmp/mongo-auth-entrypoint/:/docker-entrypoint-initdb.d/"
+        ports:
+            - "27017:27017"
+        expose:
+            - "27017"
+        networks:
+            - auth_service_db_nw
+
+    profile_mongodb:
+        image: mongo:4.0.3
+        container_name: profile_mongodb
+        restart: unless-stopped
+        volumes:
+            - "/tmp/mongo-profile-entrypoint/:/docker-entrypoint-initdb.d/"
+        ports:
+            - "27018:27017"
+        expose:
+            - "27017"
+        networks:
+            - profile_service_db_nw
+
+
+    graph_neo4j:
+        platform: linux/x86_64
+        image: neo4j:4.0.3
+        hostname: graph_neo4j
+        container_name: "graph_neo4j"
+        environment:
+            NEO4J_AUTH: neo4j/password
+        ports:
+            - "7474:7474"
+            - "7687:7687"
+        expose:
+            - "7474"
+            - "7687"
+        volumes:
+            - /tmp/neo4j/plugins:/plugins
+            - /tmp/neo4j/data:/data
+        networks:
+            - graph_service_db_nw
+    
+    post_mongodb:
+        image: mongo:4.0.3
+        container_name: post_mongodb
+        restart: unless-stopped
+        volumes:
+            - "/tmp/mongo-post-entrypoint/:/docker-entrypoint-initdb.d/"
+        ports:
+            - "27019:27017"
+        expose:
+            - "27017"
+        networks:
+            - post_service_db_nw
+    
+    feed_mongodb:
+        image: mongo:4.0.3
+        container_name: feed_mongodb
+        restart: unless-stopped
+        volumes:
+            - "/tmp/mongo-feed-entrypoint/:/docker-entrypoint-initdb.d/"
+        ports:
+            - "27020:27017"
+        expose:
+            - "27017"
+        networks:
+            - feed_service_db_nw
+    
+    
+
+networks:
+  auth_service_db_nw:
+  post_service_db_nw:
+  profile_service_db_nw:
+  graph_service_db_nw:
+  feed_service_db_nw:
+  gateway_services_nw:
+  
+  
+
+    
+    
+
+  
