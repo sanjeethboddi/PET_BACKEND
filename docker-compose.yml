@@ -15,7 +15,7 @@ services:
             - "auth_mongodb"
         networks:
             - auth_service_db_nw
-            - gateway_services_nw
+            - services_nw
 
     profile_service:
         build:
@@ -36,7 +36,7 @@ services:
             - "graph_service"
         networks:
             - profile_service_db_nw
-            - gateway_services_nw
+            - services_nw
         
     
     graph_service:
@@ -58,7 +58,7 @@ services:
             - "auth_service"
         networks:
             - graph_service_db_nw
-            - gateway_services_nw
+            - services_nw
 
     
     post_service:
@@ -85,7 +85,7 @@ services:
             - "feed_service"
         networks:
             - post_service_db_nw
-            - gateway_services_nw
+            - services_nw
     
     feed_service:
         build:
@@ -109,25 +109,8 @@ services:
             - "graph_service"
         networks:
             - feed_service_db_nw
-            - gateway_services_nw
+            - services_nw
     
-    gateway_service:
-        build:
-            context: ../gateway_service
-            dockerfile: Dockerfile
-        container_name: gateway_service
-        restart: unless-stopped
-        ports:
-            - "443:443"
-        networks:
-            - gateway_services_nw
-        
-        links:
-            - "auth_service"
-            - "profile_service"
-            - "graph_service"
-            - "post_service"
-            - "feed_service"
      
 
     
@@ -212,7 +195,7 @@ networks:
   profile_service_db_nw:
   graph_service_db_nw:
   feed_service_db_nw:
-  gateway_services_nw:
+  services_nw:
   
   
 
