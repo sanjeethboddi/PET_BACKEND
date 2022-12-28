@@ -120,7 +120,7 @@ services:
         container_name: auth_mongodb
         restart: unless-stopped
         volumes:
-            - "/tmp/mongo-auth-entrypoint/:/docker-entrypoint-initdb.d/"
+            - "${rootFolder}/mongo-auth-entrypoint/:/data"
         ports:
             - "27017:27017"
         expose:
@@ -133,7 +133,7 @@ services:
         container_name: profile_mongodb
         restart: unless-stopped
         volumes:
-            - "/tmp/mongo-profile-entrypoint/:/docker-entrypoint-initdb.d/"
+            - "${rootFolder}/mongo-profile-entrypoint/:/data"
         ports:
             - "27018:27017"
         expose:
@@ -156,8 +156,8 @@ services:
             - "7474"
             - "7687"
         volumes:
-            - /tmp/neo4j/plugins:/plugins
-            - /tmp/neo4j/data:/data
+            - ${rootFolder}/neo4j/plugins:/plugins
+            - ${rootFolder}/neo4j/data:/data
         networks:
             - graph_service_db_nw
     
@@ -166,7 +166,7 @@ services:
         container_name: post_mongodb
         restart: unless-stopped
         volumes:
-            - "/tmp/mongo-post-entrypoint/:/docker-entrypoint-initdb.d/"
+            - "${rootFolder}/mongo-post-entrypoint/:/data"
         ports:
             - "27019:27017"
         expose:
@@ -179,7 +179,7 @@ services:
         container_name: feed_mongodb
         restart: unless-stopped
         volumes:
-            - "/tmp/mongo-feed-entrypoint/:/docker-entrypoint-initdb.d/"
+            - "${rootFolder}/mongo-feed-entrypoint/:/data"
         ports:
             - "27020:27017"
         expose:
